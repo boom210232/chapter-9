@@ -47,52 +47,38 @@ function connectRabbit() {
 //
 // Setup event handlers.
 //
-function setupHandlers(app, db, messageChannel) {
+// function setupHandlers(app, db, messageChannel) {
 
-    const videosCollection = db.collection("ads");
+//     const videosCollection = db.collection("ads");
 
-    //
-    // HTTP GET API to retrieve video viewing history.
-    //
-    app.get("/videos", (req, res) => {
-        videosCollection.find() // Retreive video list from database.
-            .toArray() // In a real application this should be paginated.
-            .then(videos => {
-                res.json({ videos });
-            })
-            .catch(err => {
-                console.error("Failed to get ads collection.");
-                console.error(err);
-                res.sendStatus(500);
-            });
-    });
 
-    function consumeViewedMessage(msg) { // Handler for coming messages.
-        console.log("Received a 'viewed' message");
 
-        const parsedMsg = JSON.parse(msg.content.toString()); // Parse the JSON message.
+//     function consumeViewedMessage(msg) { // Handler for coming messages.
+//         console.log("Received a 'viewed' message");
+
+//         const parsedMsg = JSON.parse(msg.content.toString()); // Parse the JSON message.
         
-        return videosCollection.insertOne({ videoId: parsedMsg.video.id, watched: new Date() }) // Record the "view" in the database.
-            .then(() => {
-                console.log("Acknowledging message was handled.");
+//         return videosCollection.insertOne({ videoId: parsedMsg.video.id, watched: new Date() }) // Record the "view" in the database.
+//             .then(() => {
+//                 console.log("Acknowledging message was handled.");
                 
-                messageChannel.ack(msg); // If there is no error, acknowledge the message.
-            });
-    };
+//                 messageChannel.ack(msg); // If there is no error, acknowledge the message.
+//             });
+//     };
 
-    return messageChannel.assertExchange("viewed", "fanout") // Assert that we have a "viewed" exchange.
-        .then(() => {
-            return messageChannel.assertQueue("", {}); // Create an anonyous queue.
-        })
-        .then(response => {
-            const queueName = response.queue;
-            console.log(`Created queue ${queueName}, binding it to "viewed" exchange.`);
-            return messageChannel.bindQueue(queueName, "viewed", "") // Bind the queue to the exchange.
-                .then(() => {
-                    return messageChannel.consume(queueName, consumeViewedMessage); // Start receiving messages from the anonymous queue.
-                });
-        });
-}
+//     return messageChannel.assertExchange("viewed", "fanout") // Assert that we have a "viewed" exchange.
+//         .then(() => {
+//             return messageChannel.assertQueue("", {}); // Create an anonyous queue.
+//         })
+//         .then(response => {
+//             const queueName = response.queue;
+//             console.log(`Created queue ${queueName}, binding it to "viewed" exchange.`);
+//             return messageChannel.bindQueue(queueName, "viewed", "") // Bind the queue to the exchange.
+//                 .then(() => {
+//                     return messageChannel.consume(queueName, consumeViewedMessage); // Start receiving messages from the anonymous queue.
+//                 });
+//         });
+// }
 
 //
 // Start the HTTP server.
@@ -101,7 +87,7 @@ function startHttpServer(db, messageChannel) {
     return new Promise(resolve => { // Wrap in a promise so we can be notified when the server has started.
         const app = express();
         app.use(bodyParser.json()); // Enable JSON body for HTTP requests.
-        setupHandlers(app, db, messageChannel);
+        // setupHandlers(app, db, messageChannel);
 
         const port = process.env.PORT && parseInt(process.env.PORT) || 3000;
         app.listen(port, () => {
@@ -124,9 +110,30 @@ function main() {
 }
 
 const ads = {
-    google: "google",
+    "1": {
+        "name":"google",
+        "url":"https:www.google.com"
+    },
+    "2": {
+        "name" :"lazada",
+        "url": "https:www.lazada.co.th"
+    },
+    "3": {
+        "name" :"American airlines",
+        "url": "https:www.aa.com"
+    },
+    "4": {
+        "name" :"Kasetsart University",
+        "url": "https:www.ku.ac.th"
+    },
+    "5": {
+        "name" :"Y8",
+        "url": "https:www.y8.com"
+    },
     
 }
+
+let x = Math.floor((Math.random() * 5) + 1);
 
 main()
     .then(() => console.log("Microservice online."))
